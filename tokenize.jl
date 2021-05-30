@@ -7,13 +7,8 @@ using PolytonicGreek
 f = "texts/lysias1.cex"
 output = "histo-1.cex"
 
-
-# Replace this with PolytonicGreek's `rmaccents` function
-function cleangreek(s)
-    normed = Unicode.normalize(s, :NFKC)
-    Unicode.normalize(normed, stripmark=true)
-end
-
+# src is a filename.
+# Create a list of lexical tokens
 function lextokens(src)
     c = CitableText.fromfile(CitableCorpus,f)
     lextokens = []
@@ -21,13 +16,15 @@ function lextokens(src)
         tokenlist = PolytonicGreek.tokenizeLiteraryGreek(cn.text)
         for t in tokenlist
             if (t.tokencategory ==  Orthography.LexicalToken())
-                push!(lextokens, cleangreek(t.text))
+                push!(lextokens, rmaccents(t.text))
             end
         end
     end
     lextokens
 end
 
+
+# Write a histogram of lexical tokens in src to file target
 function histogram(src, target)
     tkns = lextokens(src)
     hist = sort(freqtable(tkns); rev=true)
@@ -39,3 +36,5 @@ function histogram(src, target)
         println(io, join(output, "\n"))
     end
 end
+
+# histogram(f, output)
