@@ -7,6 +7,8 @@ using PolytonicGreek
 f = "texts/lysias1.cex"
 output = "histo-1.cex"
 
+
+# Replace this with PolytonicGreek's `rmaccents` function
 function cleangreek(s)
     normed = Unicode.normalize(s, :NFKC)
     Unicode.normalize(normed, stripmark=true)
