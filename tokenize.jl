@@ -50,3 +50,30 @@ function propidx(arr, i, n = 1)
         propidx(arr, i, n + 1)
     end
 end
+
+function runningtotals(arr)
+    runningtotalarr = []
+    for i in 1:length(arr)
+        push!(runningtotalarr, sum(arr[1:i]))
+    end
+    runningtotalarr
+end
+
+# Triples of token, proportion, running total of proportion
+trips =  zip(tokenlist, arr, runningtotals(arr)) |> collect
+
+
+# Compute proportion of tokens covered by tokens occurring
+# n or more times
+function occurenceproportion(histo, n)
+    arr = histo.array
+    finalidx = 0
+    revidx = for i in 1:length(arr)
+        if arr[i] >= n
+            #print(arr[i], " >= ", )
+            finalidx = i
+        end
+    end
+    proportions = prop(histo)
+    proportions[1:finalidx] |> sum
+end
