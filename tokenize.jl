@@ -37,4 +37,16 @@ function histogram(src, target)
     end
 end
 
+
 # histogram(f, output)
+
+
+
+function propidx(arr, i, n = 1)
+    proptotal = arr[1:n] |> sum
+    if proptotal > i
+        n
+    else
+        propidx(arr, i, n + 1)
+    end
+end
