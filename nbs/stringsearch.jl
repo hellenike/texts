@@ -43,6 +43,14 @@ md"""Search for: $(@bind str TextField()) Limit to Lysias 1 only $(@bind lys1 Ch
 # ╔═╡ 9df7b364-5a92-4520-83d7-76f2ed1b0b8f
 md"> Find and format results"
 
+# ╔═╡ 1f937b99-3630-4287-9ef3-0dd6dd25b352
+function highlight(nd)
+	string("> ", nd.text)
+end
+
+# ╔═╡ fb1fe822-36d4-4aa9-a18a-0019f3523dfa
+lys1
+
 # ╔═╡ e207f667-94c2-4f10-837b-bd8128941f8d
 # Normalize search string for searching
 srchstripped = Unicode.normalize(str; stripmark=true)
@@ -51,7 +59,7 @@ srchstripped = Unicode.normalize(str; stripmark=true)
 md"> Load data"
 
 # ╔═╡ 83505f78-df78-4ad4-b889-1d7ad0dd4206
-f = string(pwd() |> dirname, "/texts/lysias1.cex")
+f = string(pwd() |> dirname, "/texts/all-lysias.cex")
 
 
 # ╔═╡ d535fee1-ab32-404f-9d3f-f372093e772e
@@ -69,7 +77,7 @@ rawmatch = begin
 	if length(str) < 2
 		nothing
 	elseif lys1
-		srchcorp = filter(cn -> startswith(passagecomponent(cn.urn), "1."), stripped)
+		srchcorp = filter(cn -> startswith(workcomponent(cn.urn), "tlg0540.tlg001"), stripped)
 		filter(cn -> occursin(srchstripped, cn.text), srchcorp)	
 	else
 		filter(cn -> occursin(srchstripped, cn.text), stripped)	
@@ -114,10 +122,17 @@ srcnodes = matchingnodes()
 # ╔═╡ 78bb6c66-fe2f-40db-9574-93fe11530b26
 begin
 	lines = []
-	for i in 1:length(rawmatch)
-		push!(lines, string("**", i, "**. ", srcnodes[i].text), "\n\n")
+	if isnothing(rawmatch)
+		md""
+	else
+		for i in 1:length(rawmatch)
+			srcurn = srcnodes[i].urn
+			ref = passagecomponent(srcurn)
+			push!(lines, string("**", i, "**. ", ref, " ", srcnodes[i].text), "\n\n")
+			push!(lines, highlight(rawmatch[i]), "\n\n")
+		end
+		Markdown.parse(join(lines))
 	end
-	Markdown.parse(join(lines))
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -555,12 +570,14 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─3621f458-e9bb-11eb-0fa3-b5c88b3c3081
 # ╟─e62b3d65-b836-4cb2-9999-22e677b84316
 # ╟─318f3c0a-1930-43fd-824b-2354067329ab
-# ╟─9df7b364-5a92-4520-83d7-76f2ed1b0b8f
 # ╟─78bb6c66-fe2f-40db-9574-93fe11530b26
+# ╟─9df7b364-5a92-4520-83d7-76f2ed1b0b8f
+# ╠═1f937b99-3630-4287-9ef3-0dd6dd25b352
+# ╟─fb1fe822-36d4-4aa9-a18a-0019f3523dfa
 # ╟─e207f667-94c2-4f10-837b-bd8128941f8d
 # ╟─040086af-2d82-46b1-a484-edf8f3b96040
-# ╟─e5b7f3f0-ec6e-4bce-8cbb-9d485cfabbac
-# ╟─47f10449-6cc2-42f1-a824-98a0e9385f69
+# ╠═e5b7f3f0-ec6e-4bce-8cbb-9d485cfabbac
+# ╠═47f10449-6cc2-42f1-a824-98a0e9385f69
 # ╟─33d2a232-67e4-49fb-89a0-7e68e5d84cde
 # ╟─83505f78-df78-4ad4-b889-1d7ad0dd4206
 # ╟─d535fee1-ab32-404f-9d3f-f372093e772e
