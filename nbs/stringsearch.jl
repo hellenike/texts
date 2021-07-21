@@ -4,6 +4,15 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : missing
+        el
+    end
+end
+
 # ╔═╡ 5afb0b90-8be6-4e9b-b528-06f9e37cbda2
 begin
 	using CitableText
@@ -19,6 +28,16 @@ end
 # ╔═╡ 3621f458-e9bb-11eb-0fa3-b5c88b3c3081
 md"> # String search on text of Lysias"
 
+# ╔═╡ e62b3d65-b836-4cb2-9999-22e677b84316
+md"""Search for: $(@bind str TextField())"""
+
+# ╔═╡ 9df7b364-5a92-4520-83d7-76f2ed1b0b8f
+md"> Find and format results"
+
+# ╔═╡ e207f667-94c2-4f10-837b-bd8128941f8d
+# Normalize search string for searching
+srchstripped = Unicode.normalize(str; stripmark=true)
+
 # ╔═╡ 33d2a232-67e4-49fb-89a0-7e68e5d84cde
 md"> Load data"
 
@@ -33,6 +52,48 @@ c = CitableCorpus.fromfile(CitableTextCorpus, f, "|")
 stripped = begin
 	map(cn -> CitableNode(cn.urn, Unicode.normalize(cn.text; stripmark=true)),  c.corpus)
 end
+
+# ╔═╡ 47f10449-6cc2-42f1-a824-98a0e9385f69
+# Find stripped nodes that match
+rawmatch = begin
+
+	if length(str) < 2
+		nothing
+	else
+		filter(cn -> occursin(srchstripped, cn.text), stripped)	
+	end
+end
+
+# ╔═╡ 318f3c0a-1930-43fd-824b-2354067329ab
+begin
+	if isnothing(rawmatch)
+		md""
+	else
+		md"""
+		Matching passages: $(length(rawmatch))
+		"""
+	end
+end
+
+
+# ╔═╡ 040086af-2d82-46b1-a484-edf8f3b96040
+# Find fully accented nodes corresponding to rawmatch
+function matchingnodes()
+	nodelist = []
+	for nd in rawmatch
+		matches = filter(cn -> cn.urn == nd.urn, c.corpus)
+		if length(matches) != 1
+			@warn("Something went wrong looking for $(cn.urn)")
+			push!(nodelist, nothing)
+		else
+			push!(nodelist, matches[1])
+		end
+	end
+	nodelist
+end
+
+# ╔═╡ e5b7f3f0-ec6e-4bce-8cbb-9d485cfabbac
+srcnodes = matchingnodes()
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -467,6 +528,13 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╔═╡ Cell order:
 # ╟─5afb0b90-8be6-4e9b-b528-06f9e37cbda2
 # ╟─3621f458-e9bb-11eb-0fa3-b5c88b3c3081
+# ╟─e62b3d65-b836-4cb2-9999-22e677b84316
+# ╟─318f3c0a-1930-43fd-824b-2354067329ab
+# ╟─9df7b364-5a92-4520-83d7-76f2ed1b0b8f
+# ╟─e5b7f3f0-ec6e-4bce-8cbb-9d485cfabbac
+# ╟─040086af-2d82-46b1-a484-edf8f3b96040
+# ╟─e207f667-94c2-4f10-837b-bd8128941f8d
+# ╟─47f10449-6cc2-42f1-a824-98a0e9385f69
 # ╟─33d2a232-67e4-49fb-89a0-7e68e5d84cde
 # ╟─83505f78-df78-4ad4-b889-1d7ad0dd4206
 # ╟─d535fee1-ab32-404f-9d3f-f372093e772e
