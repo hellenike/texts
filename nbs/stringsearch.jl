@@ -21,17 +21,15 @@ begin
 	using Unicode
 	
 	md"""
-	Notebook version: not yet released
+	Notebook version: **1.0.0**
 	"""
 end
 
 # ╔═╡ 3621f458-e9bb-11eb-0fa3-b5c88b3c3081
 md"""> # String search on text of Lysias
 >
-> Search for strings in text of Lysias, ignoring accents and breathing.
->
-> Choose to search full corpus of Lysias, or just Lysias 1.
->
+> - Search for strings in text of Lysias, ignoring accents and breathings
+> - Choose to search full corpus of Lysias, or just Lysias 1.
 """
 
 # ╔═╡ e62b3d65-b836-4cb2-9999-22e677b84316
@@ -43,10 +41,21 @@ md"""Search for: $(@bind str TextField()) Limit to Lysias 1 only $(@bind lys1 Ch
 # ╔═╡ 9df7b364-5a92-4520-83d7-76f2ed1b0b8f
 md"> Find and format results"
 
-# ╔═╡ 1f937b99-3630-4287-9ef3-0dd6dd25b352
-function highlight(nd)
-	string("> ", nd.text)
+# ╔═╡ 1f257171-b2ff-4072-a9f8-6cdc76b63aad
+function formatmatch(term, txt)
+	wrapped = replace(txt, term => """<span class="hilite">$term</span>""")
+	string("<blockquote>", wrapped, "</blockquote>")
 end
+
+# ╔═╡ 233f2838-dd3b-4cda-beb1-6b5607c125e6
+css = html"""
+<style>
+.hilite {
+	background-color: yellow;
+	font-weight: bold;
+}
+</style>
+"""
 
 # ╔═╡ fb1fe822-36d4-4aa9-a18a-0019f3523dfa
 lys1
@@ -73,12 +82,13 @@ end
 # ╔═╡ 47f10449-6cc2-42f1-a824-98a0e9385f69
 # Find stripped nodes that match
 rawmatch = begin
-
 	if length(str) < 2
 		nothing
+		
 	elseif lys1
 		srchcorp = filter(cn -> startswith(workcomponent(cn.urn), "tlg0540.tlg001"), stripped)
 		filter(cn -> occursin(srchstripped, cn.text), srchcorp)	
+		
 	else
 		filter(cn -> occursin(srchstripped, cn.text), stripped)	
 	end
@@ -119,6 +129,17 @@ end
 # ╔═╡ e5b7f3f0-ec6e-4bce-8cbb-9d485cfabbac
 srcnodes = matchingnodes()
 
+# ╔═╡ 4556f682-4783-4e81-a5f1-32ea88c27b27
+function labelledpsg(num, nd)
+	srcurn = nd.urn
+	workparts = split(workcomponent(srcurn), ".")
+	wknum = replace(workparts[2], r"tlg[0]+" => "")
+	ref = passagecomponent(srcurn)
+		
+	string("<p><b>", num, "</b>.  <i>Lysias ", wknum, ", ", ref, "</i> ", srcnodes[num].text, "</p>\n")
+	
+end
+
 # ╔═╡ 78bb6c66-fe2f-40db-9574-93fe11530b26
 begin
 	lines = []
@@ -126,12 +147,10 @@ begin
 		md""
 	else
 		for i in 1:length(rawmatch)
-			srcurn = srcnodes[i].urn
-			ref = passagecomponent(srcurn)
-			push!(lines, string("**", i, "**. ", ref, " ", srcnodes[i].text), "\n\n")
-			push!(lines, highlight(rawmatch[i]), "\n\n")
+			push!(lines, labelledpsg(i, srcnodes[i]))		
+			push!(lines, formatmatch(srchstripped, rawmatch[i].text))
 		end
-		Markdown.parse(join(lines))
+		HTML(join(lines))
 	end
 end
 
@@ -572,12 +591,14 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─318f3c0a-1930-43fd-824b-2354067329ab
 # ╟─78bb6c66-fe2f-40db-9574-93fe11530b26
 # ╟─9df7b364-5a92-4520-83d7-76f2ed1b0b8f
-# ╠═1f937b99-3630-4287-9ef3-0dd6dd25b352
+# ╟─1f257171-b2ff-4072-a9f8-6cdc76b63aad
+# ╟─4556f682-4783-4e81-a5f1-32ea88c27b27
+# ╟─233f2838-dd3b-4cda-beb1-6b5607c125e6
 # ╟─fb1fe822-36d4-4aa9-a18a-0019f3523dfa
 # ╟─e207f667-94c2-4f10-837b-bd8128941f8d
 # ╟─040086af-2d82-46b1-a484-edf8f3b96040
-# ╠═e5b7f3f0-ec6e-4bce-8cbb-9d485cfabbac
-# ╠═47f10449-6cc2-42f1-a824-98a0e9385f69
+# ╟─e5b7f3f0-ec6e-4bce-8cbb-9d485cfabbac
+# ╟─47f10449-6cc2-42f1-a824-98a0e9385f69
 # ╟─33d2a232-67e4-49fb-89a0-7e68e5d84cde
 # ╟─83505f78-df78-4ad4-b889-1d7ad0dd4206
 # ╟─d535fee1-ab32-404f-9d3f-f372093e772e
