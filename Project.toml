@@ -6,5 +6,6 @@ PolytonicGreek = "72b824a7-2b4a-40fa-944c-ac4f345dc63a"
 
 [compat]
 CitableText = "0.6"
+FreqTables = "0.4"
 Orthography = "0.8"
 PolytonicGreek = "0.12"
