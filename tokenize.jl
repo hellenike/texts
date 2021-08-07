@@ -10,7 +10,7 @@ output = "histo-1.cex"
 # src is a filename.
 # Create a list of lexical tokens
 function lextokens(src)
-    c = CitableText.fromfile(CitableCorpus,f)
+    c = CitableCorpus.fromfile(CitableTextCorpus,f)
     lextokens = []
     for cn in c.corpus
         tokenlist = PolytonicGreek.tokenizeLiteraryGreek(cn.text)
