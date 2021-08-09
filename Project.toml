@@ -1,13 +1,15 @@
 [deps]
 CitableCorpus = "cf5ac11a-93ef-4a1a-97a3-f6af101603b5"
+CitableParserBuilder = "c834cb9d-35b9-419a-8ff8-ecaeea9e2a2a"
 CitableText = "41e66566-473b-49d4-85b7-da83b66615d8"
 FreqTables = "da1fdf0e-e0ff-5433-a45f-9bb5ff651cb1"
 Orthography = "0b4c9448-09b0-4e78-95ea-3eb3328be36d"
 PolytonicGreek = "72b824a7-2b4a-40fa-944c-ac4f345dc63a"
 
 [compat]
-CitableText = "0.9"
 CitableCorpus = "0,3"
+CitableParserBuilder = "0.8"
+CitableText = "0.9"
 FreqTables = "0.4"
 Orthography = "0.8"
 PolytonicGreek = "0.12"
