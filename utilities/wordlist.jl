@@ -34,3 +34,8 @@ function wordlist(corp::CitableTextCorpus)
     end
     Iterators.flatten(words) |> collect |> unique |> sort
 end
+
+words = wordlist(c)
+open("wordlist.txt", "w") do io
+    write(io, join(words,"\n"))
+end
