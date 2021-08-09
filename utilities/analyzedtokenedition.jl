@@ -5,15 +5,16 @@ using Unicode
 using Orthography
 using PolytonicGreek
 using CitableParserBuilder
+using HTTP
 
+analysisdata = "https://raw.githubusercontent.com/neelsmith/Kanones.jl/main/scratch/analyses.cex"
+#analysisfile = "data/analyses.cex"
+lines = split(String(HTTP.get(analysisdata).body) , "\n")
 
-
-analysisfile = "data/analyses.cex"
-lines = readlines(analysisfile)
 
 parsedict = Dict()
 for l in lines
-    halves = split(l, "|")
+    halves = split(String(l), "|")
     if haskey(parsedict,halves[1])
         parses = parsedict[halves[1]]
         push!(parses, halves[2])
