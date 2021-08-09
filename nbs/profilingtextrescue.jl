@@ -36,7 +36,7 @@ begin
 end
 
 # ╔═╡ b9e4dd3b-bad7-4a75-9d03-de6cec83fd07
-md"Edit the following cell to load data:"
+md"Edit the following cell to load a different data set:"
 
 # ╔═╡ 58134b9c-5fe5-11eb-35a0-cf70533dda53
 # Replace the missing value by uncommenting this URL or supplying your own value
@@ -45,7 +45,7 @@ tknanalysisurl =  "https://raw.githubusercontent.com/hellenike/texts/main/data/a
 #tknanalysisurl = missing
 
 # ╔═╡ dfb69194-5fd8-11eb-2bad-e7e6201ff5aa
-md"""> ## Understanding vocabulary patterns
+md"""> ## Understanding vocabulary patterns in Lysias 1
 >
 > - Summarize the relation of lexemes to coverage in a selected text.
 
@@ -69,11 +69,23 @@ md"> Stuff you don't need to look at to use this notebook"
 # ╔═╡ a579d24d-8763-48e3-a423-b60dae8cbf87
 md"`x` and `y` ranges for plotting:"
 
-# ╔═╡ 4c288101-e1fa-4f05-b3cc-810adb8df6ea
-
-
 # ╔═╡ 54d1e082-5fd9-11eb-233b-39f68c5cbbc6
 md"> Compute overview of Hyginus"
+
+# ╔═╡ e6fa4dda-b9d9-42e5-978d-70a374d917b3
+tknanalysesdf = missing
+
+# ╔═╡ 361c563c-60ee-11eb-24ec-17331d26a26c
+ ismissing(tknanalysesdf) ? missing : nrow(tknanalysesdf)
+
+# ╔═╡ 482ac6f8-60ee-11eb-25ef-8b500c6ab929
+skipmissing(tknanalysesdf)
+
+# ╔═╡ 082b7ed4-60ef-11eb-0214-4dde0492e8a8
+ tiny =  ismissing(tknanalysesdf) ? missing : tknanalysesdf[:, [:urn, :form]]
+
+# ╔═╡ 27c90ebe-60ef-11eb-2fd3-5f31b799a7d9
+typeof(tiny)
 
 # ╔═╡ 0b76083a-60ee-11eb-2b54-77337dff0a09
 md"\"Parts of speech\" (analytical patterns):"
@@ -93,33 +105,18 @@ md"> What-if functions"
 # ╔═╡ 4713512e-5fd9-11eb-06d6-2ba2419c6252
 md"> ### Loading data"
 
-# ╔═╡ 84abaad2-47ad-41f7-8e6d-fbdce9401ec5
-tknanalysesdf =  missing
+# ╔═╡ 6c9033b6-5fe5-11eb-3a26-03358ad850bd
+# raw dataframe of data set
+greektknanalysesdf = ismissing(tknanalysisurl) ? missing : CSV.File(HTTP.get(tknanalysisurl).body, skipto=2, delim="|") |> DataFrame
 
 # ╔═╡ 2d9c2de0-60ec-11eb-2ce1-cd3b85a12a80
-formstrings = ismissing(tknanalysesdf) ? missing : collect(skipmissing(tknanalysesdf[:,:form]))
-
-# ╔═╡ 5f025218-60eb-11eb-1e8f-23f566f7e143
-pos = ismissing(formstrings) ? missing :  unique(map(f -> extractPos(f), formstrings))
+formstrings = ismissing(tknanalysesdf) ? missing : collect(skipmissing(greektknanalysesdf[:,:form]))
 
 # ╔═╡ 2dd83876-60ee-11eb-2b53-39e75f28c872
  ismissing(tknanalysesdf) ? missing : (length(formstrings))
 
-# ╔═╡ 361c563c-60ee-11eb-24ec-17331d26a26c
- ismissing(tknanalysesdf) ? missing : nrow(tknanalysesdf)
-
-# ╔═╡ 482ac6f8-60ee-11eb-25ef-8b500c6ab929
-skipmissing(tknanalysesdf)
-
-# ╔═╡ 082b7ed4-60ef-11eb-0214-4dde0492e8a8
- tiny =  ismissing(tknanalysesdf) ? missing : tknanalysesdf[:, [:urn, :form]]
-
-# ╔═╡ 27c90ebe-60ef-11eb-2fd3-5f31b799a7d9
-typeof(tiny)
-
-# ╔═╡ 6c9033b6-5fe5-11eb-3a26-03358ad850bd
-# raw dataframe of data set
-greektknanalysesdf = ismissing(tknanalysisurl) ? missing : CSV.File(HTTP.get(tknanalysisurl).body, skipto=2, delim="|") |> DataFrame
+# ╔═╡ 5f025218-60eb-11eb-1e8f-23f566f7e143
+pos = ismissing(formstrings) ? missing :  unique(map(f -> extractPos(f), formstrings))
 
 # ╔═╡ e9d941a0-6017-11eb-350d-3962d89be793
 md"> ### Organizing data for analysis"
@@ -150,12 +147,6 @@ end
 
 # ╔═╡ 13e50672-6019-11eb-1360-dd915bf2002f
 md"Non-null analyses of lexical tokens"
-
-# ╔═╡ a5495da8-14fc-4648-b2f9-4d69d6f0b8e0
-#analyzedtokens[:, "analysis"] 
-
-# ╔═╡ 26492243-1b80-4a58-990c-1e14faf34b80
-
 
 # ╔═╡ 374aeeac-5ff5-11eb-3ccd-b31b5d4e75f0
 
@@ -189,9 +180,6 @@ ismissing(numlexemes) ? missing : md"*Choose number of lexemes*: $(@bind vocabsi
 # ╔═╡ 88fea86e-6019-11eb-13e2-634b850d2c06
 md"Occurrences of lexemes limited to one occurence per token"
 
-# ╔═╡ c0d02870-69d6-4d8c-8130-770f7cbafe80
-
-
 # ╔═╡ 953e8df6-6005-11eb-0afb-5bc35be589b8
 md">Counting frequencies of lexemes"
 
@@ -202,7 +190,9 @@ md"Sorted counts of all possible occurrences of lexemes"
 # List of lexemes limited to 1 occurence per token
 lexemesByToken = ismissing(analyzedtokens ) ? missing : begin
 	newurns = analyzedtokens[:, :urn]
-	newlexemes = map(a -> a.lexeme, analyzedtokens[:, :analysis])
+	newlexemes = map(a -> a.lexeme, analyses)
+	
+	
 	df = DataFrame(urn = newurns, lexeme = newlexemes)
 	unique!(df)
 end
@@ -242,9 +232,6 @@ Entry at position *$(vocabsize)* in the sorted vocabulary list:
 
 
 
-
-
-# ╔═╡ 641c6d98-6004-11eb-310f-2777b799f823
 
 
 # ╔═╡ 15bda764-601a-11eb-2867-ddbce7a2d57a
@@ -1266,10 +1253,10 @@ version = "0.9.1+5"
 # ╟─6be8b64f-db00-4fc5-b820-469792714d83
 # ╟─a3e6cf7a-6010-11eb-0ffb-316b3fe61315
 # ╟─a579d24d-8763-48e3-a423-b60dae8cbf87
-# ╠═b2ec0d80-6010-11eb-0f05-b9b38f4bdb8a
+# ╟─b2ec0d80-6010-11eb-0f05-b9b38f4bdb8a
 # ╟─bd529052-6010-11eb-3fb5-9bfd390f722d
-# ╠═4c288101-e1fa-4f05-b3cc-810adb8df6ea
 # ╟─54d1e082-5fd9-11eb-233b-39f68c5cbbc6
+# ╠═e6fa4dda-b9d9-42e5-978d-70a374d917b3
 # ╟─2d9c2de0-60ec-11eb-2ce1-cd3b85a12a80
 # ╟─2dd83876-60ee-11eb-2b53-39e75f28c872
 # ╟─361c563c-60ee-11eb-24ec-17331d26a26c
@@ -1294,23 +1281,18 @@ version = "0.9.1+5"
 # ╟─829df2f8-601f-11eb-2c80-7d6d5cec6423
 # ╟─4713512e-5fd9-11eb-06d6-2ba2419c6252
 # ╟─37b7bb67-ec48-4f98-831e-09da5a007f8d
-# ╠═84abaad2-47ad-41f7-8e6d-fbdce9401ec5
 # ╟─6c9033b6-5fe5-11eb-3a26-03358ad850bd
 # ╟─e9d941a0-6017-11eb-350d-3962d89be793
 # ╟─2522b228-6018-11eb-0c66-cd36f707429d
 # ╟─fb585532-6018-11eb-02d4-035f1942acef
 # ╟─c563f48c-5ff4-11eb-2a2f-c5a6ee001fd2
 # ╟─13e50672-6019-11eb-1360-dd915bf2002f
-# ╠═7c7100e5-cfa6-4277-91ac-2a3131a17a05
-# ╠═a5495da8-14fc-4648-b2f9-4d69d6f0b8e0
-# ╠═26492243-1b80-4a58-990c-1e14faf34b80
+# ╟─7c7100e5-cfa6-4277-91ac-2a3131a17a05
 # ╟─374aeeac-5ff5-11eb-3ccd-b31b5d4e75f0
 # ╟─88fea86e-6019-11eb-13e2-634b850d2c06
-# ╟─c0d02870-69d6-4d8c-8130-770f7cbafe80
 # ╟─953e8df6-6005-11eb-0afb-5bc35be589b8
 # ╟─a43d6b42-6019-11eb-05ba-f978fdc32582
 # ╟─a90a5218-6012-11eb-1bbc-ef76665e113b
-# ╠═641c6d98-6004-11eb-310f-2777b799f823
 # ╟─15bda764-601a-11eb-2867-ddbce7a2d57a
 # ╟─1205cd98-6012-11eb-005b-a5f9051fef9a
 # ╟─31eced9e-601a-11eb-12ba-e7c6477efd1b
