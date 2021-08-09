@@ -9,34 +9,33 @@ using CitableParserBuilder
 f = "texts/lysias1.cex"
 c = CitableCorpus.fromfile(CitableTextCorpus,f)
 
+function tokenizednode(cn::CitableNode)
+    tokennodes = []
+    psgbase = passagecomponent(cn.urn)
+    urnbase = droppassage(cn.urn)
+    tokenlist = PolytonicGreek.tokenizeLiteraryGreek(cn.text)
 
-function tokenedition(c::CitableTextCorpus)
-    newcorpus = []
-    for cn in c.corpus
-        psgbase = passagecomponent(cn.urn)
-        urnbase = droppassage(cn.urn)
-        tokenlist = PolytonicGreek.tokenizeLiteraryGreek(cn.text)
+    lexcount = 0
+    nonlexcount = '@'
+    for t in tokenlist
+        if t.tokencategory == LexicalToken()
+            lexcount = lexcount + 1
+            nonlexcount = '@'
+            psg = string(psgbase, ".", lexcount)
+            urn = addpassage(urnbase, psg)
+            push!(tokennodes, CitableNode(urn, t.text))
 
-        lexcount = 0
-        nonlexcount = '@'
-        for t in tokenlist
-            if t.tokencategory == LexicalToken()
-                lexcount = lexcount + 1
-                nonlexcount = '@'
-                #println("Lex count ", lexcount)
-                psg = string(psgbase, ".", lexcount)
-                urn = addpassage(urnbase, psg)
-               push!(newcorpus, CitableNode(urn, t.text))
-
-            else nonlexcount = nonlexcount + 1
-                #println("NOLEX ", lowercase(nonlexcount))
-                psg = string(psgbase, ".", lexcount, lowercase(nonlexcount))
-                urn = addpassage(urnbase, psg)
-                push!(newcorpus, CitableNode(urn, t.text))
-            end
+        else nonlexcount = nonlexcount + 1
+            psg = string(psgbase, ".", lexcount, lowercase(nonlexcount))
+            urn = addpassage(urnbase, psg)
+            push!(tokennodes, CitableNode(urn, t.text))
         end
     end
-    newcorpus |> CitableTextCorpus
+    tokennodes
+end
+
+function tokenedition(c::CitableTextCorpus)
+     tokenizednode.(c.corpus) |> Iterators.flatten |> collect |> CitableTextCorpus
 end
 
 tkned = tokenedition(c)
