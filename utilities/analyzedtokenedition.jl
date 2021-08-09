@@ -11,7 +11,6 @@ analysisdata = "https://raw.githubusercontent.com/neelsmith/Kanones.jl/main/scra
 #analysisfile = "data/analyses.cex"
 lines = split(String(HTTP.get(analysisdata).body) , "\n")
 
-
 parsedict = Dict()
 for l in lines
     halves = split(String(l), "|")
@@ -33,19 +32,34 @@ function normalizetxt(s)
     rmaccents(s) |> lowercase
 end
 
+function stringforcat(tokencat) 
+    if tokencat == LexicalToken()
+        "lexical"
+    elseif tokencat == PunctuationToken()
+        "punctuation"
+    else
+        "other"
+    end
+end
+
 
 analyzedcorpus = ["urn|token|analysiscex|tokencategory"]
 for cn in tkncorpus.corpus
-
+    tkn = PolytonicGreek.tokenizeLiteraryGreek(cn.text)[1]
     normed = normalizetxt(cn.text)
     if haskey(parsedict, normed)
-        for a in parsedict[normed]
-            push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|", a))
+        if isempty(parsedict[normed])
+            push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|missing|", stringforcat(tkn.tokencategory)))
+
+        else
+            for a in parsedict[normed]
+                push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|", a, "|", stringforcat(tkn.tokencategory)))
+            end
         end
 
-        push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|", parsedict[normed]))
+
     else
-        push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|missing"))
+        push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|missing|", stringforcat(tkn.tokencategory)))
     end
 end
 
