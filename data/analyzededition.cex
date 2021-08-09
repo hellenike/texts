@@ -1,3 +1,4 @@
+urn|token|analysiscex|tokencategory
 urn:cts:greekLit:tlg0540.tlg001.omar:1.1.1|περὶ|περι,lsj.n81017,morphforms.1000000002,litgreek.indeclinable3,uninflectedstems.n81017
 urn:cts:greekLit:tlg0540.tlg001.omar:1.1.1|περὶ|SubString{String}["περι,lsj.n81017,morphforms.1000000002,litgreek.indeclinable3,uninflectedstems.n81017"]
 urn:cts:greekLit:tlg0540.tlg001.omar:1.1.2|πολλοῦ|Any[]

@@ -34,7 +34,7 @@ function normalizetxt(s)
 end
 
 
-analyzedcorpus = []
+analyzedcorpus = ["urn|token|analysiscex|tokencategory"]
 for cn in tkncorpus.corpus
 
     normed = normalizetxt(cn.text)
