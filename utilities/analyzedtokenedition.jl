@@ -1,3 +1,4 @@
+# Create a delimited text file with analyses for tokens identifed by CTS URN.
 using CitableText
 using CitableCorpus
 using Unicode
@@ -7,7 +8,7 @@ using CitableParserBuilder
 
 
 
-analysisfile = "analyses.cex"
+analysisfile = "data/analyses.cex"
 lines = readlines(analysisfile)
 
 parsedict = Dict()
@@ -34,13 +35,14 @@ end
 
 analyzedcorpus = []
 for cn in tkncorpus.corpus
+
     normed = normalizetxt(cn.text)
     if haskey(parsedict, normed)
         for a in parsedict[normed]
             push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|", a))
         end
 
-        #push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|", parsedict[normed]))
+        push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|", parsedict[normed]))
     else
         push!(analyzedcorpus, string(cn.urn.urn, "|", cn.text,"|missing"))
     end
