@@ -9,22 +9,6 @@ using CitableParserBuilder
 f = "texts/lysias1.cex"
 c = CitableCorpus.fromfile(CitableTextCorpus,f)
 
-analysisfile = "analyses.cex"
-lines = readlines(analysisfile)
-
-parsedict = Dict()
-for l in lines
-    halves = split(l, "|")
-    if haskey(parsedict,halves[1])
-        parses = parsedict[halves[1]]
-        push!(parses, halves[2])
-        parsedict[halves[1]] = parses
-    elseif isempty(halves[2])
-        parsedict[halves[1]] = []
-    else
-        parsedict[halves[1]] = [halves[2]]
-    end
-end
 
 function tokenedition(c::CitableTextCorpus)
     newcorpus = []
@@ -52,5 +36,11 @@ function tokenedition(c::CitableTextCorpus)
             end
         end
     end
-    newcorpus
+    newcorpus |> CitableTextCorpus
+end
+
+tkned = tokenedition(c)
+
+open("data/tokenedition.cex","w") do io
+    write(io, CitableCorpus.cex(tkned))
 end

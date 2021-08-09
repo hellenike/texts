@@ -1,4 +1,7 @@
-using CitableText
+# Define functions to tokenize a text of Lysias and create
+# a histogram of lexical tokens.
+#
+using CitableText, CitableCorpus
 using Orthography
 using Unicode
 using FreqTables
@@ -9,14 +12,14 @@ output = "histo-1.cex"
 
 # src is a filename.
 # Create a list of lexical tokens
-function lextokens(src)
+function lextokens(src; rmacc = true)
     c = CitableCorpus.fromfile(CitableTextCorpus,f)
     lextokens = []
     for cn in c.corpus
         tokenlist = PolytonicGreek.tokenizeLiteraryGreek(cn.text)
         for t in tokenlist
             if (t.tokencategory ==  Orthography.LexicalToken())
-                push!(lextokens, rmaccents(t.text))
+                rmacc ? push!(lextokens, rmaccents(t.text)) : push!(lextokens, t.text)
             end
         end
     end
