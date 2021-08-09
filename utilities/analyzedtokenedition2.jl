@@ -46,7 +46,7 @@ function stringforcat(tokencat)
     end
 end
 
-analyzedcorpus = ["text|token|analysis|tokencategory"]
+analyzedcorpus = ["urn|token|analysis|tokencategory"]
 for cn in tkncorpus.corpus
     tkn = PolytonicGreek.tokenizeLiteraryGreek(cn.text)[1]
     normed = normalizetxt(cn.text)
