@@ -4,6 +4,15 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : missing
+        el
+    end
+end
+
 # ╔═╡ ad26c67e-f9eb-11eb-37a2-b7057567b36a
 begin
 	using CitableText
@@ -22,7 +31,7 @@ begin
 	plotly()
 
 	
-	md"Profile Lysias: try 2."
+	md"Profile vocabulary in Lysias 1: notebook version **0.1.0**"
 end
 
 # ╔═╡ 27098854-7e25-4eef-97b8-b4d6ff14dfd3
@@ -30,6 +39,42 @@ end
 #
 tknanalysisurl =  "https://raw.githubusercontent.com/hellenike/texts/main/data/analyzededition.cex"
 #tknanalysisurl = missing
+
+# ╔═╡ 3a62f0cf-f844-4bd5-8772-c050950ed439
+md"> ## Vocabulary in Lysias  1"
+
+# ╔═╡ a8e8ad1b-e0dd-478f-a4f6-af6bb8ca3d5d
+md"**2. Visualize coverage**"
+
+# ╔═╡ aace631b-4dee-4b34-a91e-5b80fb365397
+md"*Size of image (pixels)*: $(@bind w Slider(300:1000, show_value=true, default=400))"
+
+# ╔═╡ 4e150074-b4f9-4490-afc9-56533c33acbd
+md"**3. Summary of coverage for `n` lexemes**"
+
+# ╔═╡ 185653bd-ed7f-44dd-af0d-1beea5e3ce6f
+html"""<br/><br/>
+<br/><br/><br/>
+<hr/>
+"""
+
+# ╔═╡ 3e1cc95a-16fc-4cb9-9273-c0c94a86a793
+md"> Things you don't need to look at to use this notebook"
+
+# ╔═╡ 44ab51a4-979d-43ee-aa16-e84e8d659748
+md"Compose values for `x`/`y` axes of plot"
+
+# ╔═╡ eee75eb8-98e9-433b-b57d-6b4cdf96e3f1
+md"> Counting tokens"
+
+# ╔═╡ cd574dce-bf35-4d75-b251-fd0c841467f3
+md"> Counting lexemes"
+
+# ╔═╡ cf5eb1c5-e81a-4e93-b4dd-c0ca3f135a57
+md"> Counting functions"
+
+# ╔═╡ f40d28e3-0a10-403b-8fc6-c618e6ccc232
+md"Tally up occurrences of tokens and lexemes, and running total by lexeme:"
 
 # ╔═╡ 6980ad50-37f7-4c7a-b8fc-650046cefe07
 md"> Organize data for analysis"
@@ -45,30 +90,84 @@ greektknanalysesdf = ismissing(tknanalysisurl) ? missing : CSV.File(HTTP.get(tkn
 lexicalanalyses =  ismissing(greektknanalysesdf) ? missing :  filter(row -> row[:tokencategory] == "lexical", greektknanalysesdf)
 
 
+# ╔═╡ 676557f4-56e4-4765-9cd5-5ac44cb2124f
+numlexicaltokens = ismissing(lexicalanalyses) ? missing : length(unique(lexicalanalyses[:,:urn]))
+
+# ╔═╡ 35c68328-7856-4e5d-a26e-1757243501da
+# Find percentage of lexical tokens to a given precision that n represents 
+function pctOfLexicalTokens(n, precision=1)
+	round(100.0 * n / numlexicaltokens, digits=precision)
+end
+
 # ╔═╡ aeb1494b-2ec4-4b7a-9db3-d52925a1cc25
 analyzedtokens =  ismissing(lexicalanalyses) ? missing :  filter(row -> row[:analysiscex] != "missing", lexicalanalyses)
 
+
+# ╔═╡ bb593346-89aa-4696-a4b3-d0511ab4e6b0
+numanalyzedtokens = ismissing(analyzedtokens) ? missing : length(unique(analyzedtokens[:,:urn]))
+
+# ╔═╡ ce28dc27-feab-45ba-8be1-047b6b52f579
+pctanalyzed =	ismissing(numanalyzedtokens) ? missing :  pctOfLexicalTokens(numanalyzedtokens, 1)
+
+# ╔═╡ bc289674-1f88-40ae-88b9-a8245e520d68
+# Number of analyses
+numtokenanalyses = ismissing(analyzedtokens) ? missing :  length(analyzedtokens[:, :urn])
+
+# ╔═╡ 3fb634b2-c483-4d2d-a2fd-a35f2294101b
+morphambiguity = round(1.0 * numtokenanalyses / numanalyzedtokens, digits=2)
+
+# ╔═╡ 5235996c-0eb4-4c5b-99bc-d294efa57a51
+numanalyzedforms = ismissing(analyzedtokens) ? missing : length(unique(map(s -> lowercase(s), analyzedtokens[:,:token])))
+
+# ╔═╡ 1a0161e7-3927-4fcd-ab89-d59338260914
+# Map tokens to number of occurrences
+formcounts = ismissing(analyzedtokens) ? missing :  begin
+	formsmap = countmap(analyzedtokens[:,:token])
+	sort(collect(formsmap), by=pr->pr[2], rev=true)
+end
+
+# ╔═╡ ea1e08fc-a73c-40ff-bb65-19eb018c5a6c
+singletons = ismissing(formcounts) ? missing : length(filter(pr -> pr[2] == 1, formcounts))
+
+# ╔═╡ 074e01b3-adab-4e4a-b276-7d8f98c53594
+urns = analyzedtokens[:, :urn] 
 
 # ╔═╡ 9c6990f7-19e6-4575-b75d-7f3b2370a12f
 
 analyses = ismissing(analyzedtokens) ? missing : CitableParserBuilder.fromcex.(analyzedtokens[:,:analysiscex])
 
 
+# ╔═╡ 217fed29-ab79-4150-b1e2-c3435bc2c1cd
+lexemelist = map(a -> abbreviation(a.lexeme), analyses)
+
+# ╔═╡ 510b8dec-6755-49d0-8569-71d87e96f508
+numlexemeids = unique(lexemelist) |> length
+
+# ╔═╡ b68208f9-a258-4128-a537-7c30c81c0b05
+ismissing(tknanalysisurl) ? missing : md"*Choose number of lexemes*: $(@bind vocabsize Slider(1:numlexemeids, show_value=true, default=10))"
+
+# ╔═╡ d5047c5b-c566-4390-b0e0-a7caa06d7102
+xs = ismissing(numlexemeids) ? missing : 1:numlexemeids
+
+# ╔═╡ d3c3d854-0d63-4af6-bd9f-01d3dadd4bd0
+numlexemes = begin
+	pairlist = []
+	for i in 1:length(urns)
+		push!(pairlist, string(urns[i],"_",lexemelist[i]))
+	end
+	unique(pairlist) |> length
+	
+end
+
+
+# ╔═╡ c6c10841-c117-4ff6-9ede-fcbe21b5e4ee
+lexambiguity = round(1.0 * numlexemes / numanalyzedtokens, digits=2)
+
 # ╔═╡ c48d39e8-88ba-4019-b791-0854559361da
 forms = map(a -> a.form, analyses)
 
 # ╔═╡ 2ea79c00-1439-426f-bebd-173a9087a8ea
 surface = map(a -> a.token, analyses)
-
-# ╔═╡ 2398690e-8678-49a9-a992-63bd6f9f0112
-lexemesByToken = ismissing(analyzedtokens ) ? missing : begin
-	newurns = analyzedtokens[:, :urn]
-	newlexemes = map(a -> a.lexeme, analyses)	
-	
-	df = DataFrame(urn = newurns, lexeme = newlexemes)
-	unique!(df)
-end
-
 
 # ╔═╡ 6b947228-e55d-45fe-8ead-951f42f752aa
 md"> LSJ IDs"
@@ -88,6 +187,109 @@ end
 
 # ╔═╡ ee66d29c-f4df-4a25-a70c-48c2b2d51bc3
 hcat(surface, lsjids, forms)
+
+# ╔═╡ 2398690e-8678-49a9-a992-63bd6f9f0112
+lexemesByToken = ismissing(analyzedtokens ) ? missing : begin
+	newurns = analyzedtokens[:, :urn]
+	newlexemes = map(a -> string(abbreviation(a.lexeme),"_",lsjdict[abbreviation(a.lexeme)]), analyses)	
+	
+	df = DataFrame(urn = newurns, lexeme = newlexemes)
+	unique!(df)
+end
+
+
+# ╔═╡ bca96097-b6ef-4a0d-841e-9da78380a513
+# Count the number of instances where a given lexeme could occur.
+# Note that in lexemeByToken, if a single lexeme could support multiple IDs
+# for the same token, it is only  counted once.
+# If more than one lexeme could support an ID for the same token,
+# each is counted.
+# The total of these counts will therefore be greater than the number of tokens\
+
+lexcounts = ismissing(lexemesByToken) ? missing : begin
+	lexmap = countmap(lexemesByToken[:,:lexeme])
+    sort(collect(lexmap), by=pr->pr[2], rev=true)
+end
+
+# ╔═╡ 073642bc-6e95-4c9a-aa19-1025bc9f27bb
+ismissing(lexcounts) ? missing : md"""
+
+Entry at position **$(vocabsize)** in the sorted vocabulary list:
+
+- **$(lexcounts[vocabsize][1])** 
+- appears **$(lexcounts[vocabsize][2])** times
+
+"""
+
+# ╔═╡ e02dc9e7-78fb-41b4-8114-8a7d17361d72
+lexsingletons = ismissing(lexcounts) ? missing : length(filter(pr -> pr[2] == 1, lexcounts))
+
+# ╔═╡ cc965cf7-8c2f-447f-9c0e-4fa9a46ca986
+if ismissing(tknanalysisurl)
+	md""
+
+else
+
+	md"""
+**1. Lexicon: overview**
+
+Coverage by token ("word")
+	
+| Feature | Count | 
+| --- | --- | 
+| "Words" in text (lexical tokens) | **$(numlexicaltokens)** |
+| Number of tokens analyzed | **$(numanalyzedtokens)** |
+| Percent of tokens parsed | **$(pctanalyzed)**% |	
+| Number of possible analyses computed |**$(numtokenanalyses)** |	
+| Morphological ambiguity (analyses/ tokens analyzed) | **$(round(numtokenanalyses * 1.0 /  numanalyzedtokens, digits=1))** |
+| Number of distinct forms analyzed | **$(numanalyzedforms)** |	
+| Forms appearing only once | **$(singletons)** |
+	
+Coverage by lexeme ("vocabulary item")
+
+| Feature | Count | 
+| --- | --- | 
+| Number of tokens analyzed | **$(numanalyzedtokens)** |
+| Number of lexeme idenfications for **$(numanalyzedtokens)** analysed tokens | **$(numlexemes)** |
+| Lexical ambiguity (lexeme identifications / tokens analyzed) | **$(lexambiguity)** |
+| Number of distinct lexemes recognized | **$(numlexemeids)** |
+| Number of lexemes appearing only once | **$(lexsingletons)** |
+
+
+
+"""
+end
+
+# ╔═╡ 719c7187-0a25-40eb-b9fd-589dfaa99673
+# Cumuluative totals of occurences of lexemes
+runningtotals = ismissing(lexcounts) ? missing : begin
+	counts = map(pr -> pr[2], lexcounts)
+	cumsum(counts)
+end
+
+# ╔═╡ a5ca05d2-1d48-418f-b019-c2e5633a2f7c
+# Compute pct of tokens covered by top n vocab items
+function coverage(n)
+	tokencount = runningtotals[n]
+	pctOfLexicalTokens(tokencount)
+end
+
+# ╔═╡ 609a6437-42ec-4a74-82a5-4d28e35c836a
+ismissing(runningtotals) ? missing : md"""
+
+| Vocabulary size | Tokens recognized | Pct. of tokens in Lysias 1 | 
+| --- | --- | --- |
+| **$(vocabsize)** | $(runningtotals[vocabsize]) | **$(coverage(vocabsize))%** |
+
+"""
+
+# ╔═╡ af0d2edc-2184-4fa9-9939-ccf0cd0a78cd
+ys = ismissing(xs) ? missing : map(le -> coverage(le), Vector(xs))
+
+# ╔═╡ b7ac0882-40c5-4a47-ac5b-2fd8d6648836
+ismissing(xs) ? missing : begin
+	plot(xs, ys, legend=false, xlabel="Number of lexemes", ylabel="Percent of tokens covered", size=(w,w), title="Pct coverage for vocab. size")
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1021,15 +1223,51 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─ad26c67e-f9eb-11eb-37a2-b7057567b36a
 # ╟─27098854-7e25-4eef-97b8-b4d6ff14dfd3
+# ╟─3a62f0cf-f844-4bd5-8772-c050950ed439
+# ╟─cc965cf7-8c2f-447f-9c0e-4fa9a46ca986
+# ╟─a8e8ad1b-e0dd-478f-a4f6-af6bb8ca3d5d
+# ╟─aace631b-4dee-4b34-a91e-5b80fb365397
+# ╟─b7ac0882-40c5-4a47-ac5b-2fd8d6648836
+# ╟─4e150074-b4f9-4490-afc9-56533c33acbd
+# ╟─b68208f9-a258-4128-a537-7c30c81c0b05
+# ╟─609a6437-42ec-4a74-82a5-4d28e35c836a
+# ╟─073642bc-6e95-4c9a-aa19-1025bc9f27bb
+# ╟─185653bd-ed7f-44dd-af0d-1beea5e3ce6f
+# ╟─3e1cc95a-16fc-4cb9-9273-c0c94a86a793
+# ╟─44ab51a4-979d-43ee-aa16-e84e8d659748
+# ╟─d5047c5b-c566-4390-b0e0-a7caa06d7102
+# ╟─af0d2edc-2184-4fa9-9939-ccf0cd0a78cd
+# ╟─eee75eb8-98e9-433b-b57d-6b4cdf96e3f1
+# ╟─676557f4-56e4-4765-9cd5-5ac44cb2124f
+# ╟─bb593346-89aa-4696-a4b3-d0511ab4e6b0
+# ╟─ce28dc27-feab-45ba-8be1-047b6b52f579
+# ╟─bc289674-1f88-40ae-88b9-a8245e520d68
+# ╟─3fb634b2-c483-4d2d-a2fd-a35f2294101b
+# ╟─5235996c-0eb4-4c5b-99bc-d294efa57a51
+# ╟─ea1e08fc-a73c-40ff-bb65-19eb018c5a6c
+# ╟─cd574dce-bf35-4d75-b251-fd0c841467f3
+# ╟─510b8dec-6755-49d0-8569-71d87e96f508
+# ╟─d3c3d854-0d63-4af6-bd9f-01d3dadd4bd0
+# ╟─c6c10841-c117-4ff6-9ede-fcbe21b5e4ee
+# ╟─e02dc9e7-78fb-41b4-8114-8a7d17361d72
+# ╟─cf5eb1c5-e81a-4e93-b4dd-c0ca3f135a57
+# ╟─f40d28e3-0a10-403b-8fc6-c618e6ccc232
+# ╟─1a0161e7-3927-4fcd-ab89-d59338260914
+# ╟─bca96097-b6ef-4a0d-841e-9da78380a513
+# ╟─719c7187-0a25-40eb-b9fd-589dfaa99673
+# ╟─a5ca05d2-1d48-418f-b019-c2e5633a2f7c
+# ╟─35c68328-7856-4e5d-a26e-1757243501da
 # ╟─6980ad50-37f7-4c7a-b8fc-650046cefe07
 # ╟─52e11b96-cf45-4747-bd8e-a9b2781de6b7
 # ╟─aeb1494b-2ec4-4b7a-9db3-d52925a1cc25
+# ╠═074e01b3-adab-4e4a-b276-7d8f98c53594
 # ╠═9c6990f7-19e6-4575-b75d-7f3b2370a12f
-# ╠═85ea0ccb-da6c-4d61-a6f9-296ad439d9e1
-# ╠═c48d39e8-88ba-4019-b791-0854559361da
-# ╠═2ea79c00-1439-426f-bebd-173a9087a8ea
+# ╠═217fed29-ab79-4150-b1e2-c3435bc2c1cd
+# ╟─85ea0ccb-da6c-4d61-a6f9-296ad439d9e1
+# ╟─c48d39e8-88ba-4019-b791-0854559361da
+# ╟─2ea79c00-1439-426f-bebd-173a9087a8ea
 # ╠═ee66d29c-f4df-4a25-a70c-48c2b2d51bc3
-# ╟─2398690e-8678-49a9-a992-63bd6f9f0112
+# ╠═2398690e-8678-49a9-a992-63bd6f9f0112
 # ╟─92575ad3-4cb6-4b28-9c17-ce833277d73d
 # ╟─4c546656-8af3-4c75-a04c-0b3ce076a134
 # ╟─6b947228-e55d-45fe-8ead-951f42f752aa

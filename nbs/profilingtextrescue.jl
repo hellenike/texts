@@ -274,6 +274,9 @@ ismissing(xs) ? missing : begin
 	plot(xs, ys, legend=false, xlabel="Lexemes", ylabel="Percent of tokens covered", size=(w,w), title="Pct coverage for vocab. size")
 end
 
+# ╔═╡ 7ea2e420-8f4d-42c6-ae40-2bc528b0bf81
+ys |> typeof
+
 # ╔═╡ 31eced9e-601a-11eb-12ba-e7c6477efd1b
 md">Counting frequencies of forms"
 
@@ -1245,16 +1248,17 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─f9075e6c-5fd8-11eb-198f-354c922bfd61
 # ╟─b9e4dd3b-bad7-4a75-9d03-de6cec83fd07
-# ╠═58134b9c-5fe5-11eb-35a0-cf70533dda53
+# ╟─58134b9c-5fe5-11eb-35a0-cf70533dda53
 # ╟─dfb69194-5fd8-11eb-2bad-e7e6201ff5aa
 # ╟─6c915066-5ff4-11eb-30ce-7b604d2dec6b
 # ╟─0ef41419-b3cb-4a6a-84fe-339cec4a1299
-# ╟─6aa1f1f0-6021-11eb-16b5-2b4910b3683d
-# ╟─949a3fc0-6010-11eb-1ace-d151b0a1427a
+# ╠═6aa1f1f0-6021-11eb-16b5-2b4910b3683d
+# ╠═949a3fc0-6010-11eb-1ace-d151b0a1427a
+# ╠═7ea2e420-8f4d-42c6-ae40-2bc528b0bf81
 # ╟─0d3625c0-567c-4860-8237-d9f0326873d2
-# ╟─07faa161-33af-4ae6-bdb9-d5df3b99bb2a
+# ╠═07faa161-33af-4ae6-bdb9-d5df3b99bb2a
 # ╠═dc57ce5e-6010-11eb-3f8d-416724626481
-# ╟─d42bc94e-6022-11eb-30c6-23ff859c6bde
+# ╠═d42bc94e-6022-11eb-30c6-23ff859c6bde
 # ╟─6be8b64f-db00-4fc5-b820-469792714d83
 # ╟─a3e6cf7a-6010-11eb-0ffb-316b3fe61315
 # ╟─a579d24d-8763-48e3-a423-b60dae8cbf87
@@ -1279,7 +1283,7 @@ version = "0.9.1+5"
 # ╠═19d99d74-6000-11eb-14e0-b9d53da4d309
 # ╠═5eb787e6-5fd9-11eb-3fc3-81912954efb6
 # ╠═33b8a16e-387f-4ddc-8a7b-cb5338ec6c19
-# ╟─b50c952e-6005-11eb-16f6-e7fa560adf7a
+# ╠═b50c952e-6005-11eb-16f6-e7fa560adf7a
 # ╟─af9e0874-6017-11eb-101f-9bc1126a3314
 # ╟─8b3f7954-6001-11eb-176b-2d5282839751
 # ╟─ea7b3b26-601f-11eb-21a5-0f8b5d2d10d2
