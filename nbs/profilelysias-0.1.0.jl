@@ -35,10 +35,17 @@ begin
 end
 
 # ╔═╡ 27098854-7e25-4eef-97b8-b4d6ff14dfd3
-# Replace the missing value by uncommenting this URL or supplying your own value
-#
-tknanalysisurl =  "https://raw.githubusercontent.com/hellenike/texts/main/data/analyzededition.cex"
-#tknanalysisurl = missing
+# Define the analyzed edition to analyze:
+tknanalysisurl = begin 	   
+	# Some candidates:
+	lysias = "https://raw.githubusercontent.com/hellenike/texts/main/data/analyzededition.cex"
+	hmt =  "https://raw.githubusercontent.com/hmteditors/composite-summer21/main/data/analyzededition.cex"
+	missing
+	
+	# Your choice!
+	lysias
+end
+
 
 # ╔═╡ 3a62f0cf-f844-4bd5-8772-c050950ed439
 md"> ## Vocabulary in Lysias  1"
