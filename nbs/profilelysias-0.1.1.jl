@@ -19,7 +19,6 @@ begin
 	
 	using CSV
 	using DataFrames
-	#using FreqTables
 	using HTTP
 	using Plots
 	using StatsBase
@@ -31,7 +30,7 @@ begin
 	plotly()
 
 	
-	md"Profile vocabulary in Lysias 1: notebook version **0.1.0**"
+	md"Profile vocabulary in analyzed edition: notebook version **0.1.1**"
 end
 
 # ╔═╡ 27098854-7e25-4eef-97b8-b4d6ff14dfd3
@@ -39,16 +38,16 @@ end
 tknanalysisurl = begin 	   
 	# Some candidates:
 	lysias = "https://raw.githubusercontent.com/hellenike/texts/main/data/analyzededition.cex"
-	hmt =  "https://raw.githubusercontent.com/hmteditors/composite-summer21/main/data/analyzededition.cex"
+	scholia =  "https://raw.githubusercontent.com/hmteditors/composite-summer21/main/data/analyzededition-scholia.cex"
 	missing
 	
 	# Your choice!
-	lysias
+	scholia
 end
 
 
 # ╔═╡ 3a62f0cf-f844-4bd5-8772-c050950ed439
-md"> ## Vocabulary in Lysias  1"
+md"> ## Understanding vocabulary patterns in a text corpus"
 
 # ╔═╡ a8e8ad1b-e0dd-478f-a4f6-af6bb8ca3d5d
 md"**2. Visualize coverage**"
@@ -188,7 +187,16 @@ lsjdict = CSV.File(HTTP.get(lsjurl).body) |> Dict
 # ╔═╡ 85ea0ccb-da6c-4d61-a6f9-296ad439d9e1
 lsjids = begin 
 	abbrstrings = abbreviation.(map(a -> a.lexeme, analyses) )
-	map(s -> string(s, "_", lsjdict[s]), abbrstrings)
+	
+	labelled = []
+	for s in abbrstrings
+		if haskey(lsjdict, s)
+			push!(labelled, string(s, "_", lsjdict[s]))
+		else
+			push!(labelled, string(s, "_nolabel"))
+		end
+	end
+	labelled
 end
 
 
@@ -198,8 +206,16 @@ hcat(surface, lsjids, forms)
 # ╔═╡ 2398690e-8678-49a9-a992-63bd6f9f0112
 lexemesByToken = ismissing(analyzedtokens ) ? missing : begin
 	newurns = analyzedtokens[:, :urn]
-	newlexemes = map(a -> string(abbreviation(a.lexeme),"_",lsjdict[abbreviation(a.lexeme)]), analyses)	
 	
+	newlexemes = []
+	for a in analyses
+		abbr = abbreviation(a.lexeme)
+		if haskey(lsjdict, abbr)
+			push!(newlexemes, string(abbr,"_", lsjdict[abbr]))
+		else
+			push!(newlexemes, string(abbr,"_nolabel"))
+		end
+	end
 	df = DataFrame(urn = newurns, lexeme = newlexemes)
 	unique!(df)
 end
@@ -1273,8 +1289,8 @@ version = "0.9.1+5"
 # ╟─85ea0ccb-da6c-4d61-a6f9-296ad439d9e1
 # ╟─c48d39e8-88ba-4019-b791-0854559361da
 # ╟─2ea79c00-1439-426f-bebd-173a9087a8ea
-# ╠═ee66d29c-f4df-4a25-a70c-48c2b2d51bc3
-# ╠═2398690e-8678-49a9-a992-63bd6f9f0112
+# ╟─ee66d29c-f4df-4a25-a70c-48c2b2d51bc3
+# ╟─2398690e-8678-49a9-a992-63bd6f9f0112
 # ╟─92575ad3-4cb6-4b28-9c17-ce833277d73d
 # ╟─4c546656-8af3-4c75-a04c-0b3ce076a134
 # ╟─6b947228-e55d-45fe-8ead-951f42f752aa
