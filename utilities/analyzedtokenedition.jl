@@ -7,7 +7,7 @@ using PolytonicGreek
 using CitableParserBuilder
 using HTTP
 
-analysisdata = "https://raw.githubusercontent.com/neelsmith/Kanones.jl/main/scratch/analyses.cex"
+analysisdata = "https://raw.githubusercontent.com/neelsmith/Kanones.jl/main/scratch/lysias-analyses.cex"
 #analysisfile = "data/analyses.cex"
 lines = split(String(HTTP.get(analysisdata).body) , "\n")
 
