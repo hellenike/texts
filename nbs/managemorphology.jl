@@ -4,12 +4,25 @@
 using Markdown
 using InteractiveUtils
 
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
+
 # ╔═╡ 637017c7-ccab-4e8e-b300-acb33ad9426e
 begin
 	using Kanones
+	using Orthography, PolytonicGreek
 
 	using CSV
 	using DataFrames
+
+	using PlutoUI
 	md"""(*Your* `using` *statements are here*)"""
 end
 
@@ -17,6 +30,24 @@ end
 md"""
 # Manage morphology for Lysias
 """
+
+# ╔═╡ 8ba0f723-b6af-4eb8-b281-4678a4ceafe6
+@bind reload Button("Reload local data")
+
+# ╔═╡ b0801dc1-84bc-41e7-b3c2-3b816aef8561
+@bind txt TextField((80,5); placeholder="Paste in some text here")
+
+# ╔═╡ 874c191d-4382-4d4e-8df5-7e128e36ab19
+
+
+# ╔═╡ edd5e2d1-0b6f-4f1e-9b22-c4de90906845
+md"""
+!!! note "Libraries and configuration"
+
+"""
+
+# ╔═╡ 061e4882-2f2e-4b05-a479-64b97aa2b9df
+ortho = literaryGreek()
 
 # ╔═╡ 9970ffb6-3075-4014-bdd9-aa560eac52d8
 md"""
@@ -40,13 +71,6 @@ lysds = joinpath("..", "morphology", "datatables")
 rulesds = joinpath("..", "morphology", "literarygreek-rules")
 
 
-# ╔═╡ f05abf2c-60cf-4694-87b0-431f1942c42f
-
-
-# ╔═╡ a6a58d43-a5b4-4ce0-914f-19d8e5557dbf
-
-
-
 # ╔═╡ d4520a66-f35c-4013-b333-a2437f220dd1
 "Mindless generation of a DataFrame of analyses from a Kanones.Dataset by turning a string parser's entries into a DF source"
 function simpleDF(ds::Kanones.Dataset)
@@ -57,10 +81,46 @@ end
 
 # ╔═╡ a61d1226-ed4b-4fb4-89e5-d143bd773f83
 # ╠═╡ show_logs = false
-local_df = [rulesds, lysds] |> dataset |> simpleDF
+"""Read local dataset files and create a DataFrame of all possible parses.
+"""
+function readlocal()
+	[rulesds, lysds] |> dataset |> simpleDF
+end
+
+# ╔═╡ a04b5782-09ea-4865-ac94-640d50cd1adc
+# ╠═╡ show_logs = false
+local_df = begin
+	reload
+	readlocal()
+end
 
 # ╔═╡ de2d20d4-ef22-4541-81ef-1ae2dfedcb9a
 release_df = CSV.read(currentlitgreek, DataFrame)
+
+# ╔═╡ a6a58d43-a5b4-4ce0-914f-19d8e5557dbf
+combodf = vcat(local_df, release_df, cols = :union)
+
+
+# ╔═╡ 19474ec7-4c77-49fd-a970-84f415bc432a
+parser = DFParser(combodf)
+
+# ╔═╡ 9e90511e-9c28-4ddc-b6f5-d30bb75fbfc5
+resultdf = subset(parser.df, :Token => t -> t .== knormal(""))
+
+
+# ╔═╡ 1dd77e72-f37d-4be7-ada3-b1c93f4f9f40
+begin
+	if isempty(txt)
+		md""
+	else
+		res = []
+		for t in tokenize(txt, ortho)
+			#push!(res, (t.text, parsetoken(t.text, ortho)))
+			push!(res, parsetoken(t.text, parser))
+		end
+		res
+	end
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -68,11 +128,17 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Kanones = "107500f9-53d4-4696-8485-0747242ad8bc"
+Orthography = "0b4c9448-09b0-4e78-95ea-3eb3328be36d"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+PolytonicGreek = "72b824a7-2b4a-40fa-944c-ac4f345dc63a"
 
 [compat]
 CSV = "~0.9.11"
 DataFrames = "~1.3.4"
 Kanones = "~0.16.0"
+Orthography = "~0.16.4"
+PlutoUI = "~0.7.39"
+PolytonicGreek = "~0.17.19"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -86,6 +152,12 @@ manifest_format = "2.0"
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
 uuid = "a4c015fc-c6ff-483c-b24f-f7ea428134e9"
 version = "0.0.1"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -173,6 +245,12 @@ deps = ["TranscodingStreams", "Zlib_jll"]
 git-tree-sha1 = "ded953804d019afa9a3f98981d99b33e3db7b6da"
 uuid = "944b1d66-785c-5afd-91f1-9de20f533193"
 version = "0.7.0"
+
+[[deps.ColorTypes]]
+deps = ["FixedPointNumbers", "Random"]
+git-tree-sha1 = "eb7f0f8307f71fac7c606984ea5fb2817275d6e4"
+uuid = "3da002f7-5984-5a60-b8a6-cbb66c0b333f"
+version = "0.11.4"
 
 [[deps.Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
@@ -262,6 +340,12 @@ git-tree-sha1 = "129b104185df66e408edd6625d480b7f9e9823a0"
 uuid = "48062228-2e41-5def-b9a4-89aafe57970f"
 version = "0.9.18"
 
+[[deps.FixedPointNumbers]]
+deps = ["Statistics"]
+git-tree-sha1 = "335bfdceacc84c5cdf16aadc768aa5ddfc5383cc"
+uuid = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
+version = "0.8.4"
+
 [[deps.Formatting]]
 deps = ["Printf"]
 git-tree-sha1 = "8339d61043228fdd3eb658d86c926cb282ae72a8"
@@ -282,6 +366,18 @@ deps = ["Base64", "Dates", "IniFile", "Logging", "MbedTLS", "NetworkOptions", "S
 git-tree-sha1 = "0fa77022fe4b511826b39c894c90daf5fce3334a"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 version = "0.9.17"
+
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "0.9.4"
 
 [[deps.IOCapture]]
 deps = ["Logging", "Random"]
@@ -440,6 +536,12 @@ version = "2.3.2"
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
+
 [[deps.PolytonicGreek]]
 deps = ["Compat", "DocStringExtensions", "Documenter", "Orthography", "Test", "TestSetExtensions", "Unicode"]
 git-tree-sha1 = "3a328422171d2a9ef9794c12fba209ef473da4d4"
@@ -596,6 +698,11 @@ git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.9.6"
 
+[[deps.Tricks]]
+git-tree-sha1 = "6bac775f2d42a611cdfcd1fb217ee719630c4175"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.6"
+
 [[deps.TypedTables]]
 deps = ["Adapt", "Dictionaries", "Indexing", "SplitApplyCombine", "Tables", "Unicode"]
 git-tree-sha1 = "f91a10d0132310a31bc4f8d0d29ce052536bd7d7"
@@ -639,15 +746,23 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╟─ff1d7fce-f0a6-11ec-1ea9-ad69df1ccad5
+# ╟─8ba0f723-b6af-4eb8-b281-4678a4ceafe6
+# ╟─b0801dc1-84bc-41e7-b3c2-3b816aef8561
+# ╠═9e90511e-9c28-4ddc-b6f5-d30bb75fbfc5
+# ╠═874c191d-4382-4d4e-8df5-7e128e36ab19
+# ╠═1dd77e72-f37d-4be7-ada3-b1c93f4f9f40
+# ╟─edd5e2d1-0b6f-4f1e-9b22-c4de90906845
 # ╟─637017c7-ccab-4e8e-b300-acb33ad9426e
+# ╟─061e4882-2f2e-4b05-a479-64b97aa2b9df
+# ╟─19474ec7-4c77-49fd-a970-84f415bc432a
 # ╟─9970ffb6-3075-4014-bdd9-aa560eac52d8
 # ╟─3be1620c-8204-40ea-8c64-dd805cff0c63
 # ╟─7ee03e72-99cb-4491-a27c-66d9319fdc1a
 # ╟─79186d4f-4f9f-4c32-b2fc-071e25476f29
-# ╠═f05abf2c-60cf-4694-87b0-431f1942c42f
-# ╠═a6a58d43-a5b4-4ce0-914f-19d8e5557dbf
-# ╠═a61d1226-ed4b-4fb4-89e5-d143bd773f83
-# ╠═d4520a66-f35c-4013-b333-a2437f220dd1
+# ╟─a04b5782-09ea-4865-ac94-640d50cd1adc
+# ╟─a61d1226-ed4b-4fb4-89e5-d143bd773f83
+# ╟─d4520a66-f35c-4013-b333-a2437f220dd1
 # ╟─de2d20d4-ef22-4541-81ef-1ae2dfedcb9a
+# ╟─a6a58d43-a5b4-4ce0-914f-19d8e5557dbf
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
