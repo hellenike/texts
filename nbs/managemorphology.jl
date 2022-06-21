@@ -27,9 +27,48 @@ begin
 	md"""(*Your* `using` *statements are here*)"""
 end
 
+# ╔═╡ af87b45b-7c8e-4ee5-bb0b-aeba3d9fbe66
+md"*Show/hide configuration instructions* $(@bind showconfig CheckBox(default=false)) "
+
+# ╔═╡ 20cb2bd1-6d78-4a12-8a8a-b42cf5cb3768
+if showconfig
+
+	md"""
+!!! tip "Instructions for configuring notebook"
+
+    **Do this before using notebook**
+
+    **1**. Install precompiled morphological data:
+
+    - download `morphology-current.csv`, and put it in the `morphology` folder of this repository
+
+    **2**. Install Kanones
+
+     - Download or clone the `Kanones.jl` repository to your computer
+     - Make sure that the cell below identifies the correct location of the `Kanones.jl` folder.  The default value is for this repository and `Kanones.jl` to be in adjacent directories, like this:
+
+
+    ```
+    .
+    ├── Kanones.jl
+    └── texts
+        └── nbs
+            └── managemorphology.jl
+    ```
+
+"""
+else 
+	md"""
+!!! tip "Check box above to show instructions for configuring notebook"	
+	"""
+end
+
+# ╔═╡ 7d439b45-b011-42a0-b1d8-3f6f15291821
+kanones = joinpath("..", "..", "Kanones.jl")
+
 # ╔═╡ ff1d7fce-f0a6-11ec-1ea9-ad69df1ccad5
 md"""
-# Manage morphology for Lysias
+# Manage local morphology dataset
 """
 
 # ╔═╡ 1306c387-acab-42c8-9a7b-86b5442719ee
@@ -39,6 +78,7 @@ md"""
     - Paste or type text to analyze in the text box below.
     - You can add vocabulary entries to the Kanones data in the `morphology/datatables`
     - Use the `Reload local data` button to load new vocabulary data
+
 
 """
 
@@ -54,12 +94,18 @@ md"""
 
 """
 
+# ╔═╡ e9ef6336-408f-4dfc-9369-5977af9c1862
+preparsed_data =  joinpath("..", "morphology", "morphology-current.csv")
+
 # ╔═╡ 061e4882-2f2e-4b05-a479-64b97aa2b9df
 ortho = literaryGreek()
 
-# ╔═╡ f2a8da64-ca42-4765-a3de-385e1ef5a238
-# ╠═╡ show_logs = false
-lexicon = Kanones.lemmatadict()
+# ╔═╡ 79186d4f-4f9f-4c32-b2fc-071e25476f29
+rulesds = joinpath(kanones, "datasets", "literarygreek-rules")
+
+
+# ╔═╡ 301d5f87-8cea-4275-b4a6-ed7687423f1e
+lsjds = joinpath(kanones, "datasets", "lsj-vocab")
 
 # ╔═╡ 62e034d3-70d4-4088-b6b5-c8994da9e0cc
 md"""
@@ -77,16 +123,13 @@ md"""
     - `lysds` : directory with Kanones.dataset with supplementary morphology for Lysias (e.g., proper names)
 """
 
-# ╔═╡ 3be1620c-8204-40ea-8c64-dd805cff0c63
-currentlitgreek = joinpath("..", "morphology", "morphology-current.csv")
+# ╔═╡ f2a8da64-ca42-4765-a3de-385e1ef5a238
+# ╠═╡ show_logs = false
+lexicon = Kanones.lemmatadict()
 
 # ╔═╡ 7ee03e72-99cb-4491-a27c-66d9319fdc1a
 # ╠═╡ show_logs = false
 lysds = joinpath("..", "morphology", "datatables")
-
-# ╔═╡ 79186d4f-4f9f-4c32-b2fc-071e25476f29
-rulesds = joinpath("..", "morphology", "literarygreek-rules")
-
 
 # ╔═╡ d4520a66-f35c-4013-b333-a2437f220dd1
 "Mindless generation of a DataFrame of analyses from a Kanones.Dataset by turning a string parser's entries into a DF source"
@@ -101,7 +144,7 @@ end
 """Read local dataset files and create a DataFrame of all possible parses.
 """
 function readlocal()
-	[rulesds, lysds] |> dataset |> simpleDF
+	[rulesds, lsjds, lysds] |> dataset |> simpleDF
 end
 
 # ╔═╡ a04b5782-09ea-4865-ac94-640d50cd1adc
@@ -112,7 +155,7 @@ local_df = begin
 end
 
 # ╔═╡ de2d20d4-ef22-4541-81ef-1ae2dfedcb9a
-release_df = CSV.read(currentlitgreek, DataFrame)
+release_df = CSV.read(preparsed_data, DataFrame)
 
 # ╔═╡ a6a58d43-a5b4-4ce0-914f-19d8e5557dbf
 combodf = vcat(local_df, release_df, cols = :union)
@@ -776,6 +819,9 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 """
 
 # ╔═╡ Cell order:
+# ╟─af87b45b-7c8e-4ee5-bb0b-aeba3d9fbe66
+# ╟─20cb2bd1-6d78-4a12-8a8a-b42cf5cb3768
+# ╟─7d439b45-b011-42a0-b1d8-3f6f15291821
 # ╟─ff1d7fce-f0a6-11ec-1ea9-ad69df1ccad5
 # ╟─1306c387-acab-42c8-9a7b-86b5442719ee
 # ╟─8ba0f723-b6af-4eb8-b281-4678a4ceafe6
@@ -784,19 +830,20 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╟─8e28cb65-666b-48ca-831d-91d3e4752e5c
 # ╟─edd5e2d1-0b6f-4f1e-9b22-c4de90906845
 # ╟─637017c7-ccab-4e8e-b300-acb33ad9426e
+# ╟─e9ef6336-408f-4dfc-9369-5977af9c1862
 # ╟─061e4882-2f2e-4b05-a479-64b97aa2b9df
-# ╟─f2a8da64-ca42-4765-a3de-385e1ef5a238
+# ╟─79186d4f-4f9f-4c32-b2fc-071e25476f29
+# ╟─301d5f87-8cea-4275-b4a6-ed7687423f1e
 # ╟─62e034d3-70d4-4088-b6b5-c8994da9e0cc
 # ╟─1dd77e72-f37d-4be7-ada3-b1c93f4f9f40
 # ╟─19474ec7-4c77-49fd-a970-84f415bc432a
 # ╟─9970ffb6-3075-4014-bdd9-aa560eac52d8
-# ╟─3be1620c-8204-40ea-8c64-dd805cff0c63
+# ╟─f2a8da64-ca42-4765-a3de-385e1ef5a238
 # ╟─7ee03e72-99cb-4491-a27c-66d9319fdc1a
-# ╟─79186d4f-4f9f-4c32-b2fc-071e25476f29
 # ╟─a04b5782-09ea-4865-ac94-640d50cd1adc
 # ╟─a61d1226-ed4b-4fb4-89e5-d143bd773f83
 # ╟─d4520a66-f35c-4013-b333-a2437f220dd1
-# ╟─de2d20d4-ef22-4541-81ef-1ae2dfedcb9a
-# ╟─a6a58d43-a5b4-4ce0-914f-19d8e5557dbf
+# ╠═de2d20d4-ef22-4541-81ef-1ae2dfedcb9a
+# ╠═a6a58d43-a5b4-4ce0-914f-19d8e5557dbf
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
