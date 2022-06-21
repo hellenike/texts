@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.8
 
 using Markdown
 using InteractiveUtils
@@ -22,6 +22,7 @@ begin
 	using CSV
 	using DataFrames
 
+	using Markdown
 	using PlutoUI
 	md"""(*Your* `using` *statements are here*)"""
 end
@@ -31,14 +32,21 @@ md"""
 # Manage morphology for Lysias
 """
 
+# ╔═╡ 1306c387-acab-42c8-9a7b-86b5442719ee
+md"""
+!!! tip "Instructions"
+
+    - Paste or type text to analyze in the text box below.
+    - You can add vocabulary entries to the Kanones data in the `morphology/datatables`
+    - Use the `Reload local data` button to load new vocabulary data
+
+"""
+
 # ╔═╡ 8ba0f723-b6af-4eb8-b281-4678a4ceafe6
 @bind reload Button("Reload local data")
 
 # ╔═╡ b0801dc1-84bc-41e7-b3c2-3b816aef8561
 @bind txt TextField((80,5); placeholder="Paste in some text here")
-
-# ╔═╡ 874c191d-4382-4d4e-8df5-7e128e36ab19
-
 
 # ╔═╡ edd5e2d1-0b6f-4f1e-9b22-c4de90906845
 md"""
@@ -48,6 +56,15 @@ md"""
 
 # ╔═╡ 061e4882-2f2e-4b05-a479-64b97aa2b9df
 ortho = literaryGreek()
+
+# ╔═╡ f2a8da64-ca42-4765-a3de-385e1ef5a238
+# ╠═╡ show_logs = false
+lexicon = Kanones.lemmatadict()
+
+# ╔═╡ 62e034d3-70d4-4088-b6b5-c8994da9e0cc
+md"""
+!!! note "Parsing"
+"""
 
 # ╔═╡ 9970ffb6-3075-4014-bdd9-aa560eac52d8
 md"""
@@ -75,7 +92,7 @@ rulesds = joinpath("..", "morphology", "literarygreek-rules")
 "Mindless generation of a DataFrame of analyses from a Kanones.Dataset by turning a string parser's entries into a DF source"
 function simpleDF(ds::Kanones.Dataset)
 	sp = stringParser(ds)
-	csvsrc = "Token,Lexeme,Form,Stem,Rule" * replace(join(sp.entries,"\n") * "\n", "|" => ",")	
+	csvsrc = "Token,Lexeme,Form,Stem,Rule\n" * replace(join(sp.entries,"\n"), "|" => ",")	 * "\n"
 	CSV.read(IOBuffer(csvsrc), DataFrame)
 end
 
@@ -104,39 +121,34 @@ combodf = vcat(local_df, release_df, cols = :union)
 # ╔═╡ 19474ec7-4c77-49fd-a970-84f415bc432a
 parser = DFParser(combodf)
 
-# ╔═╡ 9e90511e-9c28-4ddc-b6f5-d30bb75fbfc5
- begin
-	andfinally = []
-	resultdf = subset(parser.df, :Token => t -> t .== knormal("κακόν"))
-		for r in eachrow(resultdf)
-			push!(andfinally, (r.Token, r.Lexeme, r.Form, r.Stem, r.Rule))
-#=
-			a =  Analysis(
-				r.Token, 
-				LexemeUrn(r.Lexeme),
-				FormUrn(r.Form),
-				StemUrn(r.Stem),
-				RuleUrn(r.Rule)
-			)
-=#
-	end
-	 andfinally
-end
-
-
 # ╔═╡ 1dd77e72-f37d-4be7-ada3-b1c93f4f9f40
-begin
+(sheep, goats) = begin
 	if isempty(txt)
-		md""
+		(md"", md"")
+		
 	else
-		res = []
+		successes = String[]
+		failures = String[]
 		for t in tokenize(txt, ortho)
-			#push!(res, (t.text, parsetoken(t.text, ortho)))
-			push!(res, parsetoken(t.text, parser))
+			if t.tokencategory == LexicalToken()
+				parses = parsetoken(t.text, parser)
+				mddisplay = Kanones.md_analysis(t.text, parses, registry = lexicon)
+				isempty(parses) ? push!(failures, mddisplay) : push!(successes, mddisplay)
+			end
 		end
-		res
+
+		(successes, failures)
 	end
 end
+
+# ╔═╡ b41f0988-6d46-442d-b637-a87bf8b014e0
+isempty(goats) ? md"" :  Markdown.parse("Failed to analyze:\n\n" * join(goats,"\n"))
+
+		
+
+# ╔═╡ 8e28cb65-666b-48ca-831d-91d3e4752e5c
+isempty(sheep) ? md"" : Markdown.parse("Analyses:\n\n" * join(sheep,"\n"))
+	
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -145,6 +157,7 @@ CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 CitableParserBuilder = "c834cb9d-35b9-419a-8ff8-ecaeea9e2a2a"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Kanones = "107500f9-53d4-4696-8485-0747242ad8bc"
+Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 Orthography = "0b4c9448-09b0-4e78-95ea-3eb3328be36d"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 PolytonicGreek = "72b824a7-2b4a-40fa-944c-ac4f345dc63a"
@@ -163,7 +176,7 @@ PolytonicGreek = "~0.17.19"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.2"
+julia_version = "1.7.0"
 manifest_format = "2.0"
 
 [[deps.ANSIColoredPrinters]]
@@ -764,22 +777,25 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╟─ff1d7fce-f0a6-11ec-1ea9-ad69df1ccad5
-# ╠═8ba0f723-b6af-4eb8-b281-4678a4ceafe6
+# ╟─1306c387-acab-42c8-9a7b-86b5442719ee
+# ╟─8ba0f723-b6af-4eb8-b281-4678a4ceafe6
 # ╟─b0801dc1-84bc-41e7-b3c2-3b816aef8561
-# ╠═9e90511e-9c28-4ddc-b6f5-d30bb75fbfc5
-# ╠═874c191d-4382-4d4e-8df5-7e128e36ab19
-# ╠═1dd77e72-f37d-4be7-ada3-b1c93f4f9f40
+# ╟─b41f0988-6d46-442d-b637-a87bf8b014e0
+# ╟─8e28cb65-666b-48ca-831d-91d3e4752e5c
 # ╟─edd5e2d1-0b6f-4f1e-9b22-c4de90906845
-# ╠═637017c7-ccab-4e8e-b300-acb33ad9426e
+# ╟─637017c7-ccab-4e8e-b300-acb33ad9426e
 # ╟─061e4882-2f2e-4b05-a479-64b97aa2b9df
+# ╟─f2a8da64-ca42-4765-a3de-385e1ef5a238
+# ╟─62e034d3-70d4-4088-b6b5-c8994da9e0cc
+# ╟─1dd77e72-f37d-4be7-ada3-b1c93f4f9f40
 # ╟─19474ec7-4c77-49fd-a970-84f415bc432a
 # ╟─9970ffb6-3075-4014-bdd9-aa560eac52d8
 # ╟─3be1620c-8204-40ea-8c64-dd805cff0c63
-# ╠═7ee03e72-99cb-4491-a27c-66d9319fdc1a
-# ╠═79186d4f-4f9f-4c32-b2fc-071e25476f29
-# ╠═a04b5782-09ea-4865-ac94-640d50cd1adc
-# ╠═a61d1226-ed4b-4fb4-89e5-d143bd773f83
-# ╠═d4520a66-f35c-4013-b333-a2437f220dd1
+# ╟─7ee03e72-99cb-4491-a27c-66d9319fdc1a
+# ╟─79186d4f-4f9f-4c32-b2fc-071e25476f29
+# ╟─a04b5782-09ea-4865-ac94-640d50cd1adc
+# ╟─a61d1226-ed4b-4fb4-89e5-d143bd773f83
+# ╟─d4520a66-f35c-4013-b333-a2437f220dd1
 # ╟─de2d20d4-ef22-4541-81ef-1ae2dfedcb9a
 # ╟─a6a58d43-a5b4-4ce0-914f-19d8e5557dbf
 # ╟─00000000-0000-0000-0000-000000000001
