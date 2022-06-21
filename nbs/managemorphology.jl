@@ -59,7 +59,7 @@ if showconfig
 """
 else 
 	md"""
-!!! tip "Check box above to show instructions for configuring notebook"	
+!!! tip "Check box above to see instructions for configuring notebook"	
 	"""
 end
 
