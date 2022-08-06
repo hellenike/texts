@@ -5,17 +5,34 @@
 # - lower case
 # - no breathings
 #
+using CitableBase
 using CitableText
 using CitableCorpus
-using Unicode
 using Orthography
 using PolytonicGreek
+using Kanones
+using SplitApplyCombine
 
 
 f = "texts/lysias1.cex"
-c = CitableCorpus.fromfile(CitableTextCorpus,f)
+c = fromcex(f, CitableTextCorpus,FileReader)
+o = literaryGreek() 
+tkns = tokenize(c, o)
+lexprs = filter(pr -> pr[2] == LexicalToken(), tkns)
+lexstrs = map(pr -> Kanones.knormal(pr[1].text), lexprs)
+grouped = group(lexstrs)
+counts = []
+for k in keys(grouped)
+    push!(counts, (k, length(grouped[k])))
+end
+sorted = sort(counts, by = pr -> pr[2], rev = true)
+
+open("wordcounts.csv", "w") do io
+    write(io, join(map(pr -> string(pr[1],",",pr[2]), sorted) ,"\n"))
+end
 
 
+#=
 # Extract normalized set of strings for all lexical items
 # in a citable node.
 function stringsfornode(cn)
@@ -29,7 +46,7 @@ end
 # Compose wordlist for a corpus.
 function wordlist(corp::CitableTextCorpus)
     words = []
-    for cn in corp.corpus
+    for cn in corp
         push!(words, stringsfornode(cn))
     end
     Iterators.flatten(words) |> collect |> unique |> sort
@@ -39,3 +56,4 @@ words = wordlist(c)
 open("wordlist.txt", "w") do io
     write(io, join(words,"\n"))
 end
+=#
